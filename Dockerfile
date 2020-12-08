@@ -1,8 +1,8 @@
-FROM alpine:3.12.1
+FROM ubuntu:20.04
 
 ARG HELM_VERSION
 ARG KUBECTL_VERSION
-RUN apk add --update --no-cache curl ca-certificates && \
+RUN apt-get update -y && apt-get install curl -y && \
     # Install helm (https://helm.sh/docs/intro/install)
     curl -L https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar xvz && \
     mv linux-amd64/helm /usr/bin/helm && \
@@ -13,9 +13,7 @@ RUN apk add --update --no-cache curl ca-certificates && \
     mv kubectl /usr/bin/kubectl && \
     chmod +x /usr/bin/kubectl && \
     # Install git (https://git-scm.com/download/linux)
-    apk add git && \
-    # Cleanup
-    rm -f /var/cache/apk/*
+    apt-get install git -y
 
 RUN git clone https://github.com/civo/kubernetes-marketplace.git marketplace
 WORKDIR marketplace
