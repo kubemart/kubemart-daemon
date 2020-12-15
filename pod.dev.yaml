@@ -5,8 +5,8 @@ metadata:
 spec:
   containers:
     - name: bizaar
-      image: zulhcivo/bizaar:v1alpha1
+      image: civo/bizaar-daemon:v1alpha1
       imagePullPolicy: Always
       args: ["sleep", "86400"]
-  imagePullSecrets:
-    - name: regcred
+  # imagePullSecrets:
+  #   - name: regcred

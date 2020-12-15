@@ -1,0 +1,5 @@
+marketplace
+scripts/*.yaml
+scripts/*.json
+temp
+pod.dev.yaml
