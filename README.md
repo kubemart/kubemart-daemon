@@ -11,15 +11,15 @@ $ docker build --no-cache --build-arg HELM_VERSION=3.4.1 --build-arg KUBECTL_VER
 To completely remove Helm based application, use the following uninstall script template:
 
 ```
-helm delete release_name -n namespace
-kubectl delete helmchart HelmChart.metadata.name -n kube-system
-kubectl delete ns namespace
+$ helm delete release_name -n namespace
+$ kubectl delete helmchart HelmChart.metadata.name -n kube-system
+$ kubectl delete ns namespace
 ```
 
 For example:
 
 ```
-helm delete kubenav -n kubenav
-kubectl delete helmchart kubenav -n kube-system
-kubectl delete ns kubenav
+$ helm delete kubenav -n kubenav
+$ kubectl delete helmchart kubenav -n kube-system
+$ kubectl delete ns kubenav
 ```
