@@ -44,7 +44,7 @@ var helmChartFilePath string = fmt.Sprintf("%s/%s", outputDir, helmChartFileName
 func main() {
 	appName := flag.String("app-name", "", "Marketplace App name (required)")
 	crdAppName := flag.String("crd-app-name", "", "The metadata.name of the App CRD (required)")
-	namespaceName := flag.String("namespace", "default", "Namespace to install the App CR (will use 'default' if not present)")
+	namespaceName := flag.String("namespace", "default", "Namespace is the namespace where the App CR lives (will use default if it's empty)")
 	flag.Parse()
 
 	// Check CLI flags
