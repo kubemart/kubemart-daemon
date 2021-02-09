@@ -14,7 +14,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/civo/bizaar-docker-img/pkg/utils"
+	"github.com/civo/bizaar-daemon/pkg/utils"
 	operator "github.com/civo/bizaar-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"

@@ -1,4 +1,4 @@
-module github.com/civo/bizaar-docker-img
+module github.com/civo/bizaar-daemon
 
 go 1.15
 
