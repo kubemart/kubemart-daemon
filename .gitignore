@@ -2,3 +2,5 @@ marketplace
 scripts/*.yaml
 scripts/*.json
 temp
+bizaar-docker-img
+main

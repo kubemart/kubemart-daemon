@@ -4,6 +4,19 @@
 # Build the manager binary
 FROM golang:1.15 as builder
 
+# To pull from private repositories
+ARG ACCESS_TOKEN_USR=""
+ARG ACCESS_TOKEN_PWD=""
+RUN printf "machine github.com\n\
+    login ${ACCESS_TOKEN_USR}\n\
+    password ${ACCESS_TOKEN_PWD}\n\
+    \n\
+    machine api.github.com\n\
+    login ${ACCESS_TOKEN_USR}\n\
+    password ${ACCESS_TOKEN_PWD}\n"\
+    >> /root/.netrc
+RUN chmod 600 /root/.netrc
+
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -38,10 +51,13 @@ RUN apt-get update -y && apt-get install curl -y && \
     # Install git (https://git-scm.com/download/linux)
     apt-get install git -y && \
     # Install jq (https://stedolan.github.io/jq/download/)
-    apt-get install jq -y
+    apt-get install jq -y && \
+    # Install envsubst (part of gettext)
+    apt-get install gettext-base -y
 
 WORKDIR /
 ADD scripts /scripts
 RUN chmod +x /scripts/run.sh
-RUN git clone https://github.com/civo/kubernetes-marketplace.git marketplace
+# TODO - remove the branch
+RUN git clone --branch b https://github.com/zulh-civo/kubernetes-marketplace.git marketplace
 COPY --from=builder /workspace/main .

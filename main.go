@@ -6,118 +6,79 @@ Useful resources
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
-	"gopkg.in/yaml.v2"
+	"github.com/civo/bizaar-docker-img/pkg/utils"
+	operator "github.com/civo/bizaar-operator/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// HelmChartHeader is used to extract metadata.name from HelmChart YAML files
-type HelmChartHeader struct {
-	APIVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
-	Metadata   struct {
-		Name      string `yaml:"name"`
-		Namespace string `yaml:"namespace"`
-	} `yaml:"metadata"`
+type installationInfoFile struct {
+	Name      string `json:"cr_name"`
+	Namespace string `json:"cr_namespace"`
 }
-
-// InstallationInfo is used to save JSON file into "scripts" folder
-type InstallationInfo struct {
-	AppName          string
-	CrdName          string
-	Namespace        string
-	HelmReleaseName  string
-	HelmMetadataName string
-}
-
-var isHelmChart bool = false
-var outputDir string = "./scripts"
-var helmChartFileName string = "helm-chart.yaml"
-var helmChartFilePath string = fmt.Sprintf("%s/%s", outputDir, helmChartFileName)
 
 func main() {
 	appName := flag.String("app-name", "", "Marketplace App name (required)")
-	crdAppName := flag.String("crd-app-name", "", "The metadata.name of the App CRD (required)")
 	namespaceName := flag.String("namespace", "default", "Namespace is the namespace where the App CR lives (will use default if it's empty)")
 	flag.Parse()
 
 	// Check CLI flags
-	if *appName == "" || *crdAppName == "" {
+	if *appName == "" {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+	log.Printf("App name: %s, Namespace: %s\n", *appName, *namespaceName)
 
-	log.Printf("App name: %s, CRD App name: %s, Namespace: %s\n", *appName, *crdAppName, *namespaceName)
-
-	// Return if marketplace app doesn't have app.yaml file
-	yamlFilepath := fmt.Sprintf("./marketplace/%s/app.yaml", *appName)
-	if !fileExists(yamlFilepath) {
-		log.Println("This app doesn't have app.yaml file, will proceed with install.sh file using bash")
-		// Print installation information to JSON file
-		err := saveInstallationInfo(isHelmChart, *appName, *crdAppName, *namespaceName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
-
-	// Open file
-	appFile := fmt.Sprintf("./marketplace/%s/app.yaml", *appName)
-	b, err := ioutil.ReadFile(appFile)
-
+	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Get file content
-	content := string(b) // may contain line breaks
-	// fmt.Println("Original")
-	// fmt.Println(content)
+	scheme := runtime.NewScheme()
+	operator.AddToScheme(scheme)
+	operatorClient, err := client.New(config, client.Options{Scheme: scheme})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Split YAMLs
-	counter := 1
-	splitted := strings.Split(content, "---")
-	for _, s := range splitted {
-		cleaned := strings.TrimSuffix(strings.TrimPrefix(s, "\n"), "\n")
-		if cleaned == "" {
-			continue // skip the empty one
-		}
-		// fmt.Println("Splitted")
-		// fmt.Printf("%s\n\n", cleaned)
+	target := types.NamespacedName{
+		Namespace: *namespaceName,
+		Name:      *appName,
+	}
+	app := &operator.App{}
+	err = operatorClient.Get(context.Background(), target, app)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		// Create parent directory if it's not exists
-		if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-			err = os.Mkdir(outputDir, 0755)
+	configs := app.Status.Configurations
+	for _, config := range configs {
+		var value string
+
+		if config.ValueIsBase64 {
+			value, err = utils.Base64Decode(config.Value)
 			if err != nil {
 				log.Fatal(err)
 			}
+		} else {
+			value = config.Value
 		}
 
-		// Save file to disk
-		if strings.Contains(cleaned, "HelmChart") {
-			err = saveFile(cleaned, helmChartFilePath)
-			if err != nil {
-				log.Fatalf("Failed to save file %s", helmChartFilePath)
-			}
-			isHelmChart = true
-		} else {
-			filename := fmt.Sprintf("%s/k8s-%d.yaml", outputDir, counter)
-			err = saveFile(cleaned, filename)
-			if err != nil {
-				log.Fatalf("Failed to save file %s", filename)
-			}
-			counter++
-		}
+		envStr := fmt.Sprintf("export %s=%s", config.Key, value)
+		appendEnvFile(envStr)
 	}
 
-	// Print installation information to JSON file
-	err = saveInstallationInfo(isHelmChart, *appName, *crdAppName, *namespaceName)
+	err = saveInstallationInfo(*appName, *namespaceName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -125,31 +86,13 @@ func main() {
 	log.Println("Go app part is done")
 }
 
-// Return true if file exists at path
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
-}
-
-// Save HelmChart info to JSON file
-func saveInstallationInfo(isHelmChart bool, appName string, crdAppName string, namespace string) error {
-	jsonFile := InstallationInfo{}
-	jsonFile.AppName = appName
-	jsonFile.CrdName = crdAppName
+func saveInstallationInfo(appName string, namespace string) error {
+	jsonFile := installationInfoFile{}
+	jsonFile.Name = appName
 	jsonFile.Namespace = namespace
 
-	if isHelmChart {
-		hch, err := readChartHeader()
-		if err != nil {
-			return err
-		}
-
-		jsonFile.HelmReleaseName = hch.Metadata.Name
-		jsonFile.HelmMetadataName = hch.Metadata.Name
-	}
-
 	file, _ := json.MarshalIndent(jsonFile, "", " ")
-	filepath := fmt.Sprintf("%s/installation-info.json", outputDir)
+	filepath := "./scripts/installation-info.json"
 	err := ioutil.WriteFile(filepath, file, 0644)
 	if err != nil {
 		return err
@@ -158,29 +101,17 @@ func saveInstallationInfo(isHelmChart bool, appName string, crdAppName string, n
 	return nil
 }
 
-// Read HelmChart YAML file and fill the HelmChartHeader struct
-func readChartHeader() (*HelmChartHeader, error) {
-	buf, err := ioutil.ReadFile(helmChartFilePath)
+func appendEnvFile(textToAppend string) {
+	filepath := "./scripts/.env"
+	f, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
-	hch := &HelmChartHeader{}
-	err = yaml.Unmarshal(buf, hch)
+	defer f.Close()
+	text := fmt.Sprintf("%s\n", textToAppend)
+	_, err = f.WriteString(text)
 	if err != nil {
-		return nil, fmt.Errorf("in file %q: %v", helmChartFilePath, err)
+		log.Fatal(err)
 	}
-
-	return hch, nil
-}
-
-// Save individual YAML file
-func saveFile(content string, filename string) error {
-	data := []byte(content)
-	err := ioutil.WriteFile(filename, data, 0644)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
 }
