@@ -4,3 +4,4 @@ scripts/*.json
 temp
 bizaar-docker-img
 main
+bizaar-daemon

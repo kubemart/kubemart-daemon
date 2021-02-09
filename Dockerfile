@@ -5,22 +5,14 @@
 FROM golang:1.15 as builder
 
 # To pull from private repositories
-ARG ACCESS_TOKEN_USR=""
-ARG ACCESS_TOKEN_PWD=""
-RUN printf "machine github.com\n\
-    login ${ACCESS_TOKEN_USR}\n\
-    password ${ACCESS_TOKEN_PWD}\n\
-    \n\
-    machine api.github.com\n\
-    login ${ACCESS_TOKEN_USR}\n\
-    password ${ACCESS_TOKEN_PWD}\n"\
-    >> /root/.netrc
-RUN chmod 600 /root/.netrc
+ARG ACCESS_TOKEN_USR
+ARG ACCESS_TOKEN_PWD
+RUN git config --global url."https://${ACCESS_TOKEN_USR}:${ACCESS_TOKEN_PWD}@github.com".insteadOf "https://github.com"
+RUN GOPRIVATE=github.com/civo/bizaar-daemon,github.com/civo/bizaar-operator
 
 WORKDIR /workspace
-# Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY . .
+
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
@@ -29,7 +21,7 @@ RUN go mod download
 COPY main.go main.go
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o main main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=auto go build -a -o main main.go
 
 # ====================================================
 # Others
@@ -57,7 +49,7 @@ RUN apt-get update -y && apt-get install curl -y && \
 
 WORKDIR /
 ADD scripts /scripts
-RUN chmod +x /scripts/run.sh
+RUN chmod +x /scripts/install.sh
 # TODO - remove the branch
 RUN git clone --branch b https://github.com/zulh-civo/kubernetes-marketplace.git marketplace
 COPY --from=builder /workspace/main .

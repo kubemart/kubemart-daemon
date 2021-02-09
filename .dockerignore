@@ -3,3 +3,6 @@ scripts/*.yaml
 scripts/*.json
 temp
 pod.dev.yaml
+bizaar-docker-img
+main
+bizaar-daemon
