@@ -3,9 +3,17 @@
 echo "---"
 
 # load and set environment variables
-source .env
+ENV_FILE=.env
+if [ -f "$ENV_FILE" ]
+then
+    cat $ENV_FILE
+    source $ENV_FILE
+else
+    echo "This app does not have .env file (meaning it does not have configurations)"
+fi
 
 # Read JSON file
+echo "---"
 FILE_CONTENT=$(cat installation-info.json)
 CR_APP_NAME=$(echo $FILE_CONTENT | jq -r ".cr_name")
 CR_APP_NAMESPACE=$(echo $FILE_CONTENT | jq -r ".cr_namespace")
@@ -14,7 +22,7 @@ echo "CR APP NAMESPACE :" $CR_APP_NAMESPACE
 
 # Capture installation status so we can proceed 
 # with post-install steps (update the CR status)
-lastStatus=1
+# lastStatus=1
 
 # Run pre-install.sh
 PRE_INSTALL_FILE=../marketplace/$CR_APP_NAME/pre_install.sh
@@ -24,7 +32,7 @@ then
     echo "$PRE_INSTALL_FILE does exist, running it..."
     chmod +x $PRE_INSTALL_FILE
     source $PRE_INSTALL_FILE
-    lastStatus=$?
+    echo "Status of pre_install.sh: $?"
 fi
 
 # Run kubectl againts app.yaml
@@ -33,8 +41,8 @@ if [ -f "$APP_YAML_FILE" ]
 then
     echo "---"
     echo "$APP_YAML_FILE does exist, running it (using kubectl)..."
-    cat app.yaml | envsubst | kubectl apply -f -
-    lastStatus=$?
+    cat $APP_YAML_FILE | envsubst | kubectl apply -f -
+    echo "Status of app.yaml: $?"
 fi
 
 # Run install.sh
@@ -45,18 +53,17 @@ then
     echo "$INSTALL_FILE does exist, running it..."
     chmod +x $INSTALL_FILE
     source $INSTALL_FILE
-    lastStatus=$?
+    echo "Status of install.sh: $?"
 fi
 
-if [ "$lastStatus" -eq 0 ]; then
-    echo "---"
-    echo "Updating CRD..."
-    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-
-    # TODO
-    # Update installed version to App CR
-else
-    echo "---"
-    echo "Something went wrong with kubectl command..."
-    exit 1
-fi
+# TODO
+# Update installed version to App CR
+# if [ "$lastStatus" -eq 0 ]; then
+#     echo "---"
+#     echo "Updating CRD..."
+#     TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+# else
+#     echo "---"
+#     echo "Something went wrong with kubectl command..."
+#     exit 1
+# fi
