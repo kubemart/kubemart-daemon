@@ -1,6 +1,6 @@
 module github.com/civo/bizaar-daemon
 
-go 1.15
+go 1.16
 
 require (
 	github.com/civo/bizaar-operator v0.0.0-20210217045707-e25f60819c9f
