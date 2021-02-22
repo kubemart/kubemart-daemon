@@ -1,6 +1,8 @@
 name: docker-build-push
 
 on:
+  repository_dispatch:
+    types: [ping-from-kubernetes-marketplace-repo]
   push:
     branches:
       - "master"
