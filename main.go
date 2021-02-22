@@ -74,7 +74,7 @@ func main() {
 			value = config.Value
 		}
 
-		envStr := fmt.Sprintf("export %s=%s", config.Key, value)
+		envStr := fmt.Sprintf("export %s=\"%s\"", config.Key, value)
 		appendEnvFile(envStr)
 	}
 
