@@ -30,6 +30,9 @@ jobs:
         run: |
           export KUBECTL_VERSION=$(curl -L -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
           echo "kubectl_version=$KUBECTL_VERSION" >> $GITHUB_ENV
+          # Notes about GitHub API latest release:
+          # https://docs.github.com/en/rest/reference/repos#get-the-latest-release
+          # In short, latest release is the most recent non-prerelease, non-draft release.
           export HELM_VERSION=$(curl -s "https://api.github.com/repos/helm/helm/releases/latest" | jq -r .tag_name)
           echo "helm_version=$HELM_VERSION" >> $GITHUB_ENV
 
