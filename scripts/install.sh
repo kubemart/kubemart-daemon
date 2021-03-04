@@ -1,8 +1,7 @@
 #!/bin/bash
 
-echo "---"
-
 # load and set environment variables
+echo "---"
 ENV_FILE=.env
 if [ -f "$ENV_FILE" ]
 then
@@ -11,6 +10,7 @@ then
 else
     echo "This app does not have .env file (meaning it does not have configurations)"
 fi
+echo "---"
 
 # Read JSON file
 echo "---"
@@ -19,10 +19,7 @@ CR_APP_NAME=$(echo $FILE_CONTENT | jq -r ".cr_name")
 CR_APP_NAMESPACE=$(echo $FILE_CONTENT | jq -r ".cr_namespace")
 echo "CR APP NAME      :" $CR_APP_NAME
 echo "CR APP NAMESPACE :" $CR_APP_NAMESPACE
-
-# Capture installation status so we can proceed 
-# with post-install steps (update the CR status)
-# lastStatus=1
+echo "---"
 
 # Run pre-install.sh
 PRE_INSTALL_FILE=../marketplace/$CR_APP_NAME/pre_install.sh
@@ -33,6 +30,7 @@ then
     chmod +x $PRE_INSTALL_FILE
     source $PRE_INSTALL_FILE
     echo "Status of pre_install.sh: $?"
+    echo "---"
 fi
 
 # Run kubectl againts app.yaml
@@ -43,6 +41,7 @@ then
     echo "$APP_YAML_FILE does exist, running it (using kubectl)..."
     cat $APP_YAML_FILE | envsubst | kubectl apply -f -
     echo "Status of app.yaml: $?"
+    echo "---"
 fi
 
 # Run install.sh
@@ -54,16 +53,5 @@ then
     chmod +x $INSTALL_FILE
     source $INSTALL_FILE
     echo "Status of install.sh: $?"
+    echo "---"
 fi
-
-# TODO
-# Update installed version to App CR
-# if [ "$lastStatus" -eq 0 ]; then
-#     echo "---"
-#     echo "Updating CRD..."
-#     TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-# else
-#     echo "---"
-#     echo "Something went wrong with kubectl command..."
-#     exit 1
-# fi

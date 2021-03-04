@@ -29,13 +29,13 @@ type installationInfoFile struct {
 
 func main() {
 	appName := flag.String("app-name", "", "Marketplace App name (required)")
-	namespaceName := flag.String("namespace", "default", "Namespace is the namespace where the App CR lives (will use default if it's empty)")
+	namespaceName := flag.String("namespace", "bizaar-system", "Namespace is the namespace where the App CR lives (will use bizaar-system if it's empty)")
 	flag.Parse()
 
 	// Check CLI flags
 	if *appName == "" {
 		flag.PrintDefaults()
-		os.Exit(1)
+		log.Fatalln("Error: --app-name flag is empty")
 	}
 	log.Printf("App name: %s, Namespace: %s\n", *appName, *namespaceName)
 

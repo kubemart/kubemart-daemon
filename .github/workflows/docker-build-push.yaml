@@ -13,15 +13,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DH_USERNAME }}
           password: ${{ secrets.DH_TOKEN }}
+
+      - name: Fetch latest kubectl and helm CLI version
+        run: |
+          export KUBECTL_VERSION=$(curl -L -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+          echo "::set-env name=KUBECTL_VERSION::$KUBECTL_VERSION"
+          export HELM_VERSION=$(curl -s "https://api.github.com/repos/helm/helm/releases/latest" | jq -r .tag_name)
+          echo "::set-env name=HELM_VERSION::$HELM_VERSION"
+
+      - name: Check the kubectl and helm CLI version that we are installing
+        run: |
+          echo kubectl: $KUBECTL_VERSION
+          echo helm: $HELM_VERSION
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -29,7 +45,7 @@ jobs:
           push: true
           tags: civo/bizaar-daemon:v1alpha1
           build-args: |
-            HELM_VERSION=3.4.1
-            KUBECTL_VERSION=1.19.0
+            KUBECTL_VERSION=$KUBECTL_VERSION
+            HELM_VERSION=$HELM_VERSION
             ACCESS_TOKEN_USR=${{ secrets.GH_USERNAME }}
             ACCESS_TOKEN_PWD=${{ secrets.GH_TOKEN }}
