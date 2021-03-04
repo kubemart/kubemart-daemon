@@ -29,14 +29,14 @@ jobs:
       - name: Fetch latest kubectl and helm CLI version
         run: |
           export KUBECTL_VERSION=$(curl -L -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-          echo "::set-env name=KUBECTL_VERSION::$KUBECTL_VERSION"
+          echo "kubectl_version=$KUBECTL_VERSION" >> $GITHUB_ENV
           export HELM_VERSION=$(curl -s "https://api.github.com/repos/helm/helm/releases/latest" | jq -r .tag_name)
-          echo "::set-env name=HELM_VERSION::$HELM_VERSION"
+          echo "helm_version=$HELM_VERSION" >> $GITHUB_ENV
 
       - name: Check the kubectl and helm CLI version that we are installing
         run: |
-          echo kubectl: $KUBECTL_VERSION
-          echo helm: $HELM_VERSION
+          echo kubectl: ${{ env.kubectl_version }}
+          echo helm: ${{ env.helm_version }}
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -45,7 +45,7 @@ jobs:
           push: true
           tags: civo/bizaar-daemon:v1alpha1
           build-args: |
-            KUBECTL_VERSION=$KUBECTL_VERSION
-            HELM_VERSION=$HELM_VERSION
+            KUBECTL_VERSION=${{ env.kubectl_version }}
+            HELM_VERSION=${{ env.helm_version }}
             ACCESS_TOKEN_USR=${{ secrets.GH_USERNAME }}
             ACCESS_TOKEN_PWD=${{ secrets.GH_TOKEN }}
