@@ -2,6 +2,6 @@ marketplace
 scripts/*.yaml
 scripts/*.json
 temp
-bizaar-docker-img
+kubemart-docker-img
 main
-bizaar-daemon
+kubemart-daemon

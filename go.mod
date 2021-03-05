@@ -9,4 +9,4 @@ require (
 	sigs.k8s.io/controller-runtime v0.6.3
 )
 
-// replace github.com/civo/bizaar-operator => /Users/zulh/civo/bizaar-operator
+// replace github.com/kubemart/kubemart-operator => /Users/zulh/kubemart/kubemart-operator

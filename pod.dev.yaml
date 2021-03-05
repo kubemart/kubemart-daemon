@@ -4,7 +4,7 @@ metadata:
   name: kubemart
 spec:
   containers:
-    - name: bizaar
+    - name: kubemart
       image: civo/kubemart-daemon:v1alpha1
       imagePullPolicy: Always
       args: ["sleep", "86400"]
