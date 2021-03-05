@@ -46,7 +46,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: civo/kubemart-daemon:v1alpha1
+          tags: kubemart/kubemart-daemon:v1alpha1
           build-args: |
             KUBECTL_VERSION=${{ env.kubectl_version }}
             HELM_VERSION=${{ env.helm_version }}
