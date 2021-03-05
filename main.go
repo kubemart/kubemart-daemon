@@ -14,8 +14,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/civo/bizaar-daemon/pkg/utils"
-	operator "github.com/civo/bizaar-operator/api/v1alpha1"
+	"github.com/kubemart/kubemart-daemon/pkg/utils"
+	operator "github.com/kubemart/kubemart-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -29,7 +29,7 @@ type installationInfoFile struct {
 
 func main() {
 	appName := flag.String("app-name", "", "Marketplace App name (required)")
-	namespaceName := flag.String("namespace", "bizaar-system", "Namespace is the namespace where the App CR lives (will use bizaar-system if it's empty)")
+	namespaceName := flag.String("namespace", "kubemart-system", "Namespace is the namespace where the App CR lives (will use kubemart-system if it's empty)")
 	flag.Parse()
 
 	// Check CLI flags

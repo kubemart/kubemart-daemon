@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: bizaar
+  name: kubemart
 spec:
   containers:
     - name: bizaar
-      image: civo/bizaar-daemon:v1alpha1
+      image: civo/kubemart-daemon:v1alpha1
       imagePullPolicy: Always
       args: ["sleep", "86400"]
   # imagePullSecrets:

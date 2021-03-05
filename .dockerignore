@@ -3,6 +3,6 @@ scripts/*.yaml
 scripts/*.json
 temp
 pod.dev.yaml
-bizaar-docker-img
+kubemart-docker-img
 main
-bizaar-daemon
+kubemart-daemon
