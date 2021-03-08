@@ -50,5 +50,3 @@ jobs:
           build-args: |
             KUBECTL_VERSION=${{ env.kubectl_version }}
             HELM_VERSION=${{ env.helm_version }}
-            ACCESS_TOKEN_USR=${{ secrets.GH_USERNAME }}
-            ACCESS_TOKEN_PWD=${{ secrets.GH_TOKEN }}
