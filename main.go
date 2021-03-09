@@ -6,79 +6,37 @@ Useful resources
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/kubemart/kubemart-daemon/pkg/utils"
-	operator "github.com/kubemart/kubemart-operator/api/v1alpha1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type installationInfoFile struct {
-	Name      string `json:"cr_name"`
-	Namespace string `json:"cr_namespace"`
+type cliFlags struct {
+	appName      string
+	appNamespace string
 }
 
 func main() {
-	appName := flag.String("app-name", "", "Marketplace App name (required)")
-	namespaceName := flag.String("namespace", "kubemart-system", "Namespace is the namespace where the App CR lives (will use kubemart-system if it's empty)")
-	flag.Parse()
-
-	// Check CLI flags
-	if *appName == "" {
-		flag.PrintDefaults()
-		log.Fatalln("Error: --app-name flag is empty")
-	}
-	log.Printf("App name: %s, Namespace: %s\n", *appName, *namespaceName)
-
-	config, err := rest.InClusterConfig()
+	cf, err := parseFlags()
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("App name: %s, Namespace: %s\n", cf.appName, cf.appNamespace)
 
-	scheme := runtime.NewScheme()
-	operator.AddToScheme(scheme)
-	operatorClient, err := client.New(config, client.Options{Scheme: scheme})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	target := types.NamespacedName{
-		Namespace: *namespaceName,
-		Name:      *appName,
-	}
-	app := &operator.App{}
-	err = operatorClient.Get(context.Background(), target, app)
+	app, err := utils.GetKubemartApp(cf.appName, cf.appNamespace)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	configs := app.Status.Configurations
-	for _, config := range configs {
-		var value string
-
-		if config.ValueIsBase64 {
-			value, err = utils.Base64Decode(config.Value)
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			value = config.Value
-		}
-
-		envStr := fmt.Sprintf("export %s=\"%s\"", config.Key, value)
-		appendEnvFile(envStr)
+	err = utils.CreateEnvFileFromConfig(configs)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	err = saveInstallationInfo(*appName, *namespaceName)
+	err = utils.SaveInstallationInfo(cf.appName, cf.appNamespace)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,32 +44,17 @@ func main() {
 	log.Println("Go app part is done")
 }
 
-func saveInstallationInfo(appName string, namespace string) error {
-	jsonFile := installationInfoFile{}
-	jsonFile.Name = appName
-	jsonFile.Namespace = namespace
+func parseFlags() (cliFlags, error) {
+	cf := cliFlags{}
+	appName := flag.String("app-name", "", "Marketplace App name (required)")
+	namespaceName := flag.String("namespace", "kubemart-system", "Namespace is the namespace where the App CR lives (will use kubemart-system if it's empty)")
+	flag.Parse()
 
-	file, _ := json.MarshalIndent(jsonFile, "", " ")
-	filepath := "./scripts/installation-info.json"
-	err := ioutil.WriteFile(filepath, file, 0644)
-	if err != nil {
-		return err
+	if *appName == "" {
+		return cf, fmt.Errorf("--app-name flag is empty")
 	}
 
-	return nil
-}
-
-func appendEnvFile(textToAppend string) {
-	filepath := "./scripts/.env"
-	f, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer f.Close()
-	text := fmt.Sprintf("%s\n", textToAppend)
-	_, err = f.WriteString(text)
-	if err != nil {
-		log.Fatal(err)
-	}
+	cf.appName = *appName
+	cf.appNamespace = *namespaceName
+	return cf, nil
 }

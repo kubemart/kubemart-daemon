@@ -3,12 +3,10 @@ name: docker-build-push
 on:
   repository_dispatch:
     types: [ping-from-kubernetes-marketplace-repo]
-  push:
-    branches:
-      - "master"
 
 jobs:
   docker-build-push:
+    needs: run-tests # only run this job if Go tests succeeded
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
