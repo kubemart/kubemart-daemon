@@ -19,7 +19,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Spin up a Kind cluster
-        run: kind create cluster --name kubemart
+        run: |
+          kind create cluster --name kubemart
+          kind export kubeconfig --name kubemart
 
       - name: Download latest kubemart-operator manifests
         uses: dsaltares/fetch-gh-release-asset@939be9e72e81fe7009b6112bc96abde38bf7b68f
@@ -52,6 +54,8 @@ jobs:
             /var/run/secrets/kubernetes.io/serviceaccount/token'
           sudo sh -c 'kubectl get secret -n kubemart-system kubemart-daemon-svc-acc-token-dn6mf -o json | jq -r '.data."ca.crt"' | base64 -d \
             /var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+          cat /var/run/secrets/kubernetes.io/serviceaccount/token
+          cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
           echo "KUBERNETES_SERVICE_HOST=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f1)" >> $GITHUB_ENV
           echo "KUBERNETES_SERVICE_PORT=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f2)" >> $GITHUB_ENV
 
