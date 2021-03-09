@@ -54,8 +54,8 @@ jobs:
           sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount/
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/token
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          sudo sh -c "kubectl get secret -n kubemart-system $SECRET_NAME -o json | jq -r '.data."token"' | base64 -d \
-          > /var/run/secrets/kubernetes.io/serviceaccount/token"
+          kubectl get secret -n kubemart-system $SECRET_NAME -o json | jq -r '.data."token"' | base64 -d > token
+          sudo sh -c "cat token > /var/run/secrets/kubernetes.io/serviceaccount/token"
 
       - name: Run tests
         env:
