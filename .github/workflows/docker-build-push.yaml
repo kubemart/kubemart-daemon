@@ -48,13 +48,14 @@ jobs:
       - name: Setup dependencies for client-go InClusterConfig()
         run: |
           export KUBERNETES_MASTER=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d' ' -f6)
+          export SECRET_NAME=$(kubectl get secret -n kubemart-system | grep kubemart-daemon-svc-acc-token | cut -d' ' -f1)
           sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount/
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/token
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          sudo sh -c 'kubectl get secret -n kubemart-system kubemart-daemon-svc-acc-token-dn6mf -o json | jq -r '.data."token"' | base64 -d \
-            /var/run/secrets/kubernetes.io/serviceaccount/token'
-          sudo sh -c 'kubectl get secret -n kubemart-system kubemart-daemon-svc-acc-token-dn6mf -o json | jq -r '.data."ca.crt"' | base64 -d \
-            /var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+          sudo sh -c "kubectl get secret -n kubemart-system $SECRET_NAME -o json | jq -r '.data."token"' | base64 -d \
+            > /var/run/secrets/kubernetes.io/serviceaccount/token"
+          sudo sh -c "kubectl get secret -n kubemart-system $SECRET_NAME -o json | jq -r '.data."ca.crt"' | base64 -d \
+            > /var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
           cat /var/run/secrets/kubernetes.io/serviceaccount/token
           cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
           echo "KUBERNETES_SERVICE_HOST=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f1)" >> $GITHUB_ENV
