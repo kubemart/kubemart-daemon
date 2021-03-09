@@ -47,7 +47,7 @@ jobs:
       # Link:
       # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges-of-github-hosted-runners
       - name: Setup dependencies for client-go InClusterConfig()
-        shell: bash
+        shell: bash set -exo pipefail
         run: |
           export KUBERNETES_MASTER=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d' ' -f6)
           export SECRET_NAME=$(kubectl get secret -n kubemart-system | grep kubemart-daemon-svc-acc-token | cut -d' ' -f1)
