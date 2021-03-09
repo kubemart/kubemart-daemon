@@ -18,7 +18,9 @@ jobs:
     steps:
       - name: Inspect event
         # uses: hmarr/debug-action@v1.0.0
-        run: echo ${{ github.event_name }}
+        run: |
+          echo ${{ github.event_name }}
+          echo ${{ github.event }} | jq
 
       - name: Checkout
         uses: actions/checkout@v2
