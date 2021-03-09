@@ -47,6 +47,7 @@ jobs:
       # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges-of-github-hosted-runners
       - name: Setup dependencies for client-go InClusterConfig()
         run: |
+          export KUBERNETES_MASTER=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d' ' -f6)
           sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount/
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/token
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -58,11 +59,13 @@ jobs:
           cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
           echo "KUBERNETES_SERVICE_HOST=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f1)" >> $GITHUB_ENV
           echo "KUBERNETES_SERVICE_PORT=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f2)" >> $GITHUB_ENV
+          echo "KUBERNETES_MASTER=$KUBERNETES_MASTER" >> $GITHUB_ENV
 
       - name: Run tests
         env:
           KUBERNETES_SERVICE_HOST: ${{ env.KUBERNETES_SERVICE_HOST }}
           KUBERNETES_SERVICE_PORT: ${{ env.KUBERNETES_SERVICE_PORT }}
+          KUBERNETES_MASTER: ${{ env.KUBERNETES_MASTER }}
         run: go test -v ./...
 
   # =====================================================================
