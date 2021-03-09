@@ -56,6 +56,13 @@ jobs:
           sudo touch /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
           kubectl get secret -n kubemart-system $SECRET_NAME -o json | jq -r '.data."token"' | base64 -d > token
           sudo sh -c "cat token > /var/run/secrets/kubernetes.io/serviceaccount/token"
+          cat /var/run/secrets/kubernetes.io/serviceaccount/token
+          kubectl get secret -n kubemart-system $SECRET_NAME -o json | jq -r '.data."ca.crt"' | base64 -d > ca.crt
+          sudo sh -c "cat ca.crt > /var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          echo "KUBERNETES_SERVICE_HOST=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f1)" >> $GITHUB_ENV
+          echo "KUBERNETES_SERVICE_PORT=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f2)" >> $GITHUB_ENV
+          echo "KUBERNETES_MASTER=$KUBERNETES_MASTER" >> $GITHUB_ENV
 
       - name: Run tests
         env:
