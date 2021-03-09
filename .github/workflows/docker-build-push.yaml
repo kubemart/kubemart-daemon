@@ -3,11 +3,66 @@ name: docker-build-push
 on:
   repository_dispatch:
     types: [ping-from-kubernetes-marketplace-repo]
+  # Note about push double asterisk symbols:
+  #   "**: Matches zero or more of any character"
+  # Link:
+  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
   push:
     branches:
-      - "master"
+      - "**"
 
 jobs:
+  run-tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Spin up a Kind cluster
+        run: kind create cluster --name kubemart
+
+      - name: Download latest kubemart-operator manifests
+        uses: dsaltares/fetch-gh-release-asset@939be9e72e81fe7009b6112bc96abde38bf7b68f
+        with:
+          repo: "kubemart/kubemart-operator"
+          version: "latest"
+          file: "kubemart-operator.yaml"
+          target: "./kubemart-operator.yaml"
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Apply latest kubemart-operator manifests
+        run: |
+          cat ./kubemart-operator.yaml
+          kubectl apply -f kubemart-operator.yaml
+
+      # Prepare an environment so the daemon (client-go) thinks
+      # like it is running in a Pod -- default behaviour for InClusterConfig()
+      # Note about using `sudo` in GitHub Actions:
+      #   "The Linux and macOS virtual machines both run using passwordless sudo. When you need to execute commands
+      #   ... or install tools that require more privileges than the current user, you can use sudo without needing
+      #   ... to provide a password."
+      # Link:
+      # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges-of-github-hosted-runners
+      - name: Setup dependencies for client-go InClusterConfig()
+        run: |
+          sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount/
+          sudo touch /var/run/secrets/kubernetes.io/serviceaccount/token
+          sudo touch /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          sudo sh -c 'kubectl get secret -n kubemart-system kubemart-daemon-svc-acc-token-dn6mf -o json | jq -r '.data."token"' | base64 -d \
+            /var/run/secrets/kubernetes.io/serviceaccount/token'
+          sudo sh -c 'kubectl get secret -n kubemart-system kubemart-daemon-svc-acc-token-dn6mf -o json | jq -r '.data."ca.crt"' | base64 -d \
+            /var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+          echo "KUBERNETES_SERVICE_HOST=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f1)" >> $GITHUB_ENV
+          echo "KUBERNETES_SERVICE_PORT=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f2)" >> $GITHUB_ENV
+        
+        - name: Run tests
+          env:
+            KUBERNETES_SERVICE_HOST: ${{ env.KUBERNETES_SERVICE_HOST }}
+            KUBERNETES_SERVICE_PORT: ${{ env.KUBERNETES_SERVICE_PORT }}
+          run: go test -v ./...
+  
+  # =====================================================================
+
   docker-build-push:
     runs-on: ubuntu-20.04
     steps:
