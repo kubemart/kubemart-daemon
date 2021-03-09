@@ -1,3 +1,5 @@
+name: main
+
 on:
   repository_dispatch:
     types: [ping-from-kubernetes-marketplace-repo]
@@ -14,13 +16,6 @@ jobs:
   run-tests:
     runs-on: ubuntu-20.04
     steps:
-      - name: Inspect event
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          echo ${{ github.event_name }}
-          echo "$GITHUB_CONTEXT"
-
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -74,11 +69,13 @@ jobs:
           KUBERNETES_SERVICE_PORT: ${{ env.KUBERNETES_SERVICE_PORT }}
           KUBERNETES_MASTER: ${{ env.KUBERNETES_MASTER }}
         run: go test -v ./...
+
   # =======================================================================
+
   docker-build-push:
     # only run this job if the trigger was from kubernetes-marketplace repository
     if: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'ping-from-kubernetes-marketplace-repo' }}
-    # run-tests job that must complete successfully before this job will run
+    # run-tests job must complete successfully before this job will run
     needs: run-tests
     runs-on: ubuntu-20.04
     steps:
