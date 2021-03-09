@@ -1,6 +1,8 @@
 name: run-tests
 
 on:
+  repository_dispatch:
+    types: [ping-from-kubernetes-marketplace-repo]
   # Run on new commit/push regardless what's the branch name.
   # Note about push double asterisk symbols:
   #   "**: Matches zero or more of any character"

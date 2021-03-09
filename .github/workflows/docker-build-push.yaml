@@ -1,12 +1,14 @@
 name: docker-build-push
 
 on:
-  repository_dispatch:
-    types: [ping-from-kubernetes-marketplace-repo]
+  workflow_run:
+    workflows: ["run-tests"]
+    types:
+      - completed
 
 jobs:
   docker-build-push:
-    needs: run-tests # only run this job if Go tests succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # only run this job if Go tests workflow succeeded
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
