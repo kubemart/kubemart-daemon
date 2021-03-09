@@ -54,13 +54,13 @@ jobs:
             /var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
           echo "KUBERNETES_SERVICE_HOST=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f1)" >> $GITHUB_ENV
           echo "KUBERNETES_SERVICE_PORT=$(kind get kubeconfig --name kubemart | grep "server:" | cut -d'/' -f3 | cut -d':' -f2)" >> $GITHUB_ENV
-        
-        - name: Run tests
-          env:
-            KUBERNETES_SERVICE_HOST: ${{ env.KUBERNETES_SERVICE_HOST }}
-            KUBERNETES_SERVICE_PORT: ${{ env.KUBERNETES_SERVICE_PORT }}
-          run: go test -v ./...
-  
+
+      - name: Run tests
+        env:
+          KUBERNETES_SERVICE_HOST: ${{ env.KUBERNETES_SERVICE_HOST }}
+          KUBERNETES_SERVICE_PORT: ${{ env.KUBERNETES_SERVICE_PORT }}
+        run: go test -v ./...
+
   # =====================================================================
 
   docker-build-push:
