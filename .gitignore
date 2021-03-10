@@ -5,3 +5,5 @@ temp
 kubemart-docker-img
 main
 kubemart-daemon
+pkg/utils/rabbitmq.yaml
+scripts/.env

@@ -1,8 +1,10 @@
 marketplace
 scripts/*.yaml
 scripts/*.json
+scripts/*.env
 temp
 pod.dev.yaml
 kubemart-docker-img
 main
 kubemart-daemon
+pkg/utils/rabbitmq.yaml
