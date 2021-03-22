@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# load and set environment variables
+# Load and set environment variables
 echo "---"
 ENV_FILE=.env
 if [ -f "$ENV_FILE" ]

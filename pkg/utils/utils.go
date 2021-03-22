@@ -19,13 +19,15 @@ const (
 	scriptsDir = "../../scripts"
 )
 
-// InstallationInfoFile ...
+// InstallationInfoFile is the JSON file structure used by the daemon Pod
+// to install the actual app on user's cluster
 type InstallationInfoFile struct {
 	Name      string `json:"cr_name"`
 	Namespace string `json:"cr_namespace"`
 }
 
-// GetKubemartApp ...
+// GetKubemartApp will communicate with the Kubemart controller and return
+// the created App object and error (if any)
 func GetKubemartApp(name, namespace string) (*operator.App, error) {
 	app := &operator.App{}
 
@@ -65,7 +67,8 @@ func Base64Decode(input string) (string, error) {
 	return decoded, nil
 }
 
-// AppendEnvFile ...
+// AppendEnvFile takes environment variable in 'export KEY=VALUE' format
+// as 'textToAppend' and add it to the bottom of the 'scripts/.env' file
 func AppendEnvFile(textToAppend string) error {
 	filepath := fmt.Sprintf("%s/.env", scriptsDir)
 	f, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -83,7 +86,10 @@ func AppendEnvFile(textToAppend string) error {
 	return nil
 }
 
-// CreateEnvFileFromConfig ...
+// CreateEnvFileFromConfig takes all the App's configuration and
+// creates 'scripts/.env' file so the daemon Pod can perform
+// 'search and replace' operation using those variables
+// via 'envsubst' CLI when installing the actual app
 func CreateEnvFileFromConfig(configs []operator.Configuration) error {
 	for _, config := range configs {
 		var value string
@@ -108,7 +114,8 @@ func CreateEnvFileFromConfig(configs []operator.Configuration) error {
 	return nil
 }
 
-// SaveInstallationInfo ...
+// SaveInstallationInfo creates 'scripts/installation-info.json' file
+// using InstallationInfoFile struct
 func SaveInstallationInfo(appName string, namespace string) error {
 	jsonFile := InstallationInfoFile{}
 	jsonFile.Name = appName
