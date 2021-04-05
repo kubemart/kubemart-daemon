@@ -27,6 +27,8 @@ echo "CR APP NAME      :" $CR_APP_NAME
 echo "CR APP NAMESPACE :" $CR_APP_NAMESPACE
 echo "---"
 
+# ===============================================================
+
 # Run pre-install.sh
 PRE_INSTALL_FILE=../marketplace/$CR_APP_NAME/pre_install.sh
 if [ -f "$PRE_INSTALL_FILE" ]
