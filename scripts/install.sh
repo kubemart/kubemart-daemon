@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Print daemon version
+echo "---"
+MARKETPLACE_LAST_COMMIT=$(git -C ../marketplace log --oneline -1)
+echo "Marketplace last commit:"
+echo $MARKETPLACE_LAST_COMMIT
+
 # Load and set environment variables
 echo "---"
 ENV_FILE=.env
