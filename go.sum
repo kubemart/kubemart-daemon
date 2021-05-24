@@ -206,6 +206,8 @@ github.com/kubemart/kubemart-operator v0.0.51 h1:O+aRCM9OHN5m7wD9Y6RObreR7ZsBAp4
 github.com/kubemart/kubemart-operator v0.0.51/go.mod h1:SfFnSk7dND0Jy7ZC7njbogvfKW0ZCo5uy6jx6ypaA5g=
 github.com/kubemart/kubemart-operator v0.0.52-0.20210524170741-8a448464a91f h1:zeswNGyZBl0mfTsHcPvlmzt7VLQV4f5PKuKvpj7gzD0=
 github.com/kubemart/kubemart-operator v0.0.52-0.20210524170741-8a448464a91f/go.mod h1:SfFnSk7dND0Jy7ZC7njbogvfKW0ZCo5uy6jx6ypaA5g=
+github.com/kubemart/kubemart-operator v0.0.53 h1:vq4TEEdE/wHkl0QMFQmhD/dGIHtO9XoMg2BEXEFkkJw=
+github.com/kubemart/kubemart-operator v0.0.53/go.mod h1:SfFnSk7dND0Jy7ZC7njbogvfKW0ZCo5uy6jx6ypaA5g=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mailru/easyjson v0.0.0-20160728113105-d5b7844b561a/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
